@@ -1,0 +1,61 @@
+import cv2
+import numpy as np
+import os
+from PIL import Image
+import time
+
+cam = cv2.VideoCapture(0) #captures the first available camera, Pi cam
+#or first USB one found
+cam.set(3, 640) #set width
+cam.set(4, 480) #set height
+
+font = cv2.FONT_HERSHEY_SIMPLEX
+
+frontalDetector = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+lateralDetector = cv2.CascadeClassifier('haarcascade_profileface.xml')
+
+print("\n Input the ID of the person")
+
+personID = input()
+
+c=0
+l=0
+
+
+while(True):
+	ret, image=cam.read()
+	#img=cv2.flip(img,-1) #We might need to flip the immage depending on the camera
+	grayImage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+	
+
+
+
+
+
+
+	faces = frontalDetector.detectMultiScale(grayImage,1.3,5)
+	laterals = lateralDetector.detectMultiScale(grayImage,1.2,5)
+	if c<40:
+		for(x,y,w,h) in faces:
+			c = c+1
+			cv2.rectangle(image,(x,y),(x+w,y+h),(255,0,0),2)
+			cv2.imwrite("dataset/User.frontal." + str(personID) + '.' + str(c) + '.jpg', grayImage[y:y+h,x:x+w]) #x,y sunt stanga jos
+			cv2.imshow('image', image)
+	if c==40:
+		cv2.putText(image, "Now turn your head around to capture lateral faces: "+ str(l), (5,5), font, 1, (255,255,255), 2)
+	if l<40:
+		for(x,y,w,h) in laterals:
+			l=l+1
+			cv2.rectangle(image,(x,y),(x+w,y+h),(255,255,0),2)
+			cv2.imwrite("dataset/User.lateral." + str(personID) + '.' + str(l) + ".jpg", grayImage[y:y+h,x:x+w])
+			cv2.imshow('image', image)
+	esc = cv2.waitKey(100) & 0xff
+	if esc == 27:
+		break
+	elif c >=40 and l>=40:
+		print("Acquiring faces terminated with success, closing...")
+		time.sleep(1)
+		break	
+
+cam.release()
+cv2.destroyAllWindows()

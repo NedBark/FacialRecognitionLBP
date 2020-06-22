@@ -1,0 +1,3 @@
+import pythontrain
+
+pythontrain.main()
